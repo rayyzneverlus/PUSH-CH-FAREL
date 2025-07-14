@@ -1,0 +1,264 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Database ID Channel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-color: #0f0c29;
+      --text-color: #00d4ff;
+      --secondary-color: #ff4de8;
+      --card-bg: rgba(15, 15, 20, 0.9);
+      --input-bg: #0f0c29;
+      --table-hover: rgba(255, 77, 232, 0.08);
+    }
+    [data-theme="light"] {
+      --bg-color: #f0f4ff;
+      --text-color: #1e1e2f;
+      --secondary-color: #ff4de8;
+      --card-bg: #ffffff;
+      --input-bg: #ffffff;
+      --table-hover: #f1e7ff;
+    }
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background 0.5s, color 0.5s;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 0 20px var(--secondary-color);
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border: 2px solid var(--text-color);
+      border-radius: 10px;
+      margin-bottom: 15px;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(90deg, var(--text-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 15px;
+      transition: 0.3s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .toggle-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--secondary-color);
+      text-align: center;
+    }
+    tbody tr:hover {
+      background-color: var(--table-hover);
+    }
+    .contact {
+      display: block;
+      font-size: 13px;
+      color: var(--secondary-color);
+      text-decoration: none;
+      margin-top: 12px;
+    }
+    .contact:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Database ID Channel</h1>
+    <div class="toggle-container">
+      <select id="themeSelector" onchange="changeTheme()">
+        <option value="blue-pink">Biru / Pink</option>
+        <option value="blue-purple">Biru / Ungu</option>
+        <option value="green-orange">Hijau / Oranye</option>
+      </select>
+      <button class="theme-toggle" onclick="toggleDarkMode()" title="Ganti Mode">🌙</button>
+    </div>
+    <input type="text" id="idInput" placeholder="Masukkan ID Channel" />
+    <button onclick="addId()">Tambah ID Channel</button>
+    <input type="text" id="searchInput" placeholder="Cari ID Channel..." oninput="searchId()" />
+    <table>
+      <thead>
+        <tr>
+          <th>ID Channel</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="idList"></tbody>
+    </table>
+    <a href="https://wa.me/6281401942027" class="contact">Contact Developer.</a>
+  </div>  <script src="setting.js"></script>  <script>
+    const themes = {
+      'blue-pink': { text: '#00d4ff', secondary: '#ff4de8' },
+      'blue-purple': { text: '#00cfff', secondary: '#9b59b6' },
+      'green-orange': { text: '#00ffaa', secondary: '#ff7e29' }
+    };
+
+    function changeTheme() {
+      const selected = document.getElementById('themeSelector').value;
+      document.documentElement.style.setProperty('--text-color', themes[selected].text);
+      document.documentElement.style.setProperty('--secondary-color', themes[selected].secondary);
+    }
+
+    function toggleDarkMode() {
+      const currentTheme = document.body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', newTheme);
+    }
+
+    const { username, repo, path, branch, token } = GITHUB_CONFIG;
+    let sha = '';
+    let idList = [];
+
+    async function fetchDatabase() {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`);
+        const data = await res.json();
+        sha = data.sha;
+        const content = JSON.parse(atob(data.content));
+        idList = content.channels || [];
+        renderList(idList);
+      } catch (error) {
+        alert('Gagal fetch database: ' + error);
+      }
+    }
+
+    async function addId() {
+      const input = document.getElementById("idInput");
+      const newId = input.value.trim();
+
+      if (newId === "") {
+        alert("ID Channel tidak boleh kosong!");
+        return;
+      }
+
+      const isValidId = /^\d{18}@newsletter$/i.test(newId);
+      if (!isValidId) {
+        alert("ID harus berformat: 18 angka diikuti @newsletter\nContoh: 120363419067731905@newsletter");
+        return;
+      }
+
+      if (idList.includes(newId)) {
+        alert("ID Channel sudah terdaftar!");
+        return;
+      }
+
+      idList.push(newId);
+      await updateDatabase();
+      input.value = "";
+      renderList(idList);
+    }
+
+    async function updateDatabase() {
+      const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
+      const contentBase64 = btoa(JSON.stringify({ channels: idList }, null, 2));
+
+      const body = {
+        message: 'Update ID Channel',
+        content: contentBase64,
+        sha: sha,
+        branch: branch
+      };
+
+      try {
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'token ' + token,
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          sha = data.content.sha;
+          alert('Berhasil update database!');
+        } else {
+          alert('Gagal update database!');
+        }
+      } catch (error) {
+        alert('Error: ' + error);
+      }
+    }
+
+    function renderList(list) {
+      const listElement = document.getElementById('idList');
+      listElement.innerHTML = '';
+
+      list.forEach(id => {
+        const row = document.createElement('tr');
+        const idCell = document.createElement('td');
+        const statusCell = document.createElement('td');
+
+        idCell.textContent = id;
+        statusCell.textContent = 'active';
+
+        row.appendChild(idCell);
+        row.appendChild(statusCell);
+        listElement.appendChild(row);
+      });
+    }
+
+    function searchId() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const filtered = idList.filter(id => id.toLowerCase().includes(query));
+      renderList(filtered);
+    }
+
+    fetchDatabase();
+  </script></body>
+</html>
