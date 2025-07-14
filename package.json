@@ -1,0 +1,12 @@
+{
+  "name": "push-ch-vercel",
+  "version": "1.0.0",
+  "main": "api/update.js",
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  }
+}
