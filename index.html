@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="id">
-<head>
+<!DOCTYPE html><html lang="id"><head>
   <meta charset="UTF-8" />
   <title>Database ID Channel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -140,125 +139,105 @@
       <tbody id="idList"></tbody>
     </table>
     <a href="https://wa.me/6281401942027" class="contact">Contact Developer.</a>
-  </div>  <script src="setting.js"></script>  <script>
+  </div>
+  <script>
     const themes = {
       'blue-pink': { text: '#00d4ff', secondary: '#ff4de8' },
       'blue-purple': { text: '#00cfff', secondary: '#9b59b6' },
       'green-orange': { text: '#00ffaa', secondary: '#ff7e29' }
-    };
+    };function changeTheme() {
+  const selected = document.getElementById('themeSelector').value;
+  document.documentElement.style.setProperty('--text-color', themes[selected].text);
+  document.documentElement.style.setProperty('--secondary-color', themes[selected].secondary);
+}
 
-    function changeTheme() {
-      const selected = document.getElementById('themeSelector').value;
-      document.documentElement.style.setProperty('--text-color', themes[selected].text);
-      document.documentElement.style.setProperty('--secondary-color', themes[selected].secondary);
+function toggleDarkMode() {
+  const currentTheme = document.body.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.body.setAttribute('data-theme', newTheme);
+}
+
+let idList = [];
+
+async function fetchDatabase() {
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/rayyzneverlus/PUSH-CH-FAREL/main/data.json');
+    const data = await res.json();
+    idList = data.channels || [];
+    renderList(idList);
+  } catch (error) {
+    alert('Gagal fetch database: ' + error);
+  }
+}
+
+async function addId() {
+  const input = document.getElementById("idInput");
+  const newId = input.value.trim();
+
+  if (newId === "") {
+    alert("ID Channel tidak boleh kosong!");
+    return;
+  }
+
+  const isValidId = /^\d{18}@newsletter$/i.test(newId);
+  if (!isValidId) {
+    alert("ID harus berformat: 18 angka diikuti @newsletter\nContoh: 120363419067731905@newsletter");
+    return;
+  }
+
+  if (idList.includes(newId)) {
+    alert("ID Channel sudah terdaftar!");
+    return;
+  }
+
+  idList.push(newId);
+  await updateDatabase();
+  input.value = "";
+  renderList(idList);
+}
+
+async function updateDatabase() {
+  try {
+    const response = await fetch("https://<YOUR_VERCEL_PROJECT>.vercel.app/api/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channels: idList })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      alert("Berhasil update database!");
+    } else {
+      alert("Gagal update database: " + result.error);
     }
+  } catch (err) {
+    alert("Error: " + err);
+  }
+}
 
-    function toggleDarkMode() {
-      const currentTheme = document.body.getAttribute('data-theme');
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      document.body.setAttribute('data-theme', newTheme);
-    }
+function renderList(list) {
+  const listElement = document.getElementById('idList');
+  listElement.innerHTML = '';
+  list.forEach(id => {
+    const row = document.createElement('tr');
+    const idCell = document.createElement('td');
+    const statusCell = document.createElement('td');
+    idCell.textContent = id;
+    statusCell.textContent = 'active';
+    row.appendChild(idCell);
+    row.appendChild(statusCell);
+    listElement.appendChild(row);
+  });
+}
 
-    const { username, repo, path, branch, token } = GITHUB_CONFIG;
-    let sha = '';
-    let idList = [];
+function searchId() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const filtered = idList.filter(id => id.toLowerCase().includes(query));
+  renderList(filtered);
+}
 
-    async function fetchDatabase() {
-      try {
-        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`);
-        const data = await res.json();
-        sha = data.sha;
-        const content = JSON.parse(atob(data.content));
-        idList = content.channels || [];
-        renderList(idList);
-      } catch (error) {
-        alert('Gagal fetch database: ' + error);
-      }
-    }
+fetchDatabase();
 
-    async function addId() {
-      const input = document.getElementById("idInput");
-      const newId = input.value.trim();
-
-      if (newId === "") {
-        alert("ID Channel tidak boleh kosong!");
-        return;
-      }
-
-      const isValidId = /^\d{18}@newsletter$/i.test(newId);
-      if (!isValidId) {
-        alert("ID harus berformat: 18 angka diikuti @newsletter\nContoh: 120363419067731905@newsletter");
-        return;
-      }
-
-      if (idList.includes(newId)) {
-        alert("ID Channel sudah terdaftar!");
-        return;
-      }
-
-      idList.push(newId);
-      await updateDatabase();
-      input.value = "";
-      renderList(idList);
-    }
-
-    async function updateDatabase() {
-      const url = `https://api.github.com/repos/${username}/${repo}/contents/${path}`;
-      const contentBase64 = btoa(JSON.stringify({ channels: idList }, null, 2));
-
-      const body = {
-        message: 'Update ID Channel',
-        content: contentBase64,
-        sha: sha,
-        branch: branch
-      };
-
-      try {
-        const res = await fetch(url, {
-          method: 'PUT',
-          headers: {
-            'Authorization': 'token ' + token,
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          body: JSON.stringify(body)
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          sha = data.content.sha;
-          alert('Berhasil update database!');
-        } else {
-          alert('Gagal update database!');
-        }
-      } catch (error) {
-        alert('Error: ' + error);
-      }
-    }
-
-    function renderList(list) {
-      const listElement = document.getElementById('idList');
-      listElement.innerHTML = '';
-
-      list.forEach(id => {
-        const row = document.createElement('tr');
-        const idCell = document.createElement('td');
-        const statusCell = document.createElement('td');
-
-        idCell.textContent = id;
-        statusCell.textContent = 'active';
-
-        row.appendChild(idCell);
-        row.appendChild(statusCell);
-        listElement.appendChild(row);
-      });
-    }
-
-    function searchId() {
-      const query = document.getElementById('searchInput').value.trim().toLowerCase();
-      const filtered = idList.filter(id => id.toLowerCase().includes(query));
-      renderList(filtered);
-    }
-
-    fetchDatabase();
-  </script></body>
-</html>
+  </script>
+</body>
+  </html>
