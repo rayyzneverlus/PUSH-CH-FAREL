@@ -5,10 +5,7 @@
   ],
   "routes": [
     { "src": "/api/update", "dest": "/api/update.js" }
-  ]
-}
-
-{
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
