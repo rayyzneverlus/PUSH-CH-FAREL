@@ -1,69 +1,43 @@
-<!DOCTYPE html><html lang="id"><head>
+<!DOCTYPE html>
+<html lang="id">
+<head>
   <meta charset="UTF-8" />
   <title>Database ID Channel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg-color: #0f0c29;
-      --text-color: #00d4ff;
-      --secondary-color: #ff4de8;
-      --card-bg: rgba(15, 15, 20, 0.9);
-      --input-bg: #0f0c29;
-      --table-hover: rgba(255, 77, 232, 0.08);
-    }
-    [data-theme="light"] {
-      --bg-color: #f0f4ff;
-      --text-color: #1e1e2f;
-      --secondary-color: #ff4de8;
-      --card-bg: #ffffff;
-      --input-bg: #ffffff;
-      --table-hover: #f1e7ff;
-    }
     body {
       margin: 0;
       font-family: "Poppins", sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
+      background: #0f0c29;
+      color: #00d4ff;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      transition: background 0.5s, color 0.5s;
     }
     .card {
-      background: var(--card-bg);
+      background: rgba(15, 15, 20, 0.9);
       padding: 30px;
       border-radius: 18px;
-      box-shadow: 0 0 20px var(--secondary-color);
+      box-shadow: 0 0 20px #ff4de8;
       width: 90%;
       max-width: 500px;
       text-align: center;
     }
-    h1 {
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-    input,
-    select {
+    input {
       width: 100%;
       padding: 12px;
       font-size: 15px;
-      border: 2px solid var(--text-color);
+      border: 2px solid #00d4ff;
       border-radius: 10px;
       margin-bottom: 15px;
-      background: var(--input-bg);
-      color: var(--text-color);
-    }
-    input:focus,
-    select:focus {
-      outline: none;
-      border-color: var(--secondary-color);
+      background: #0f0c29;
+      color: #00d4ff;
     }
     button {
       width: 100%;
-      background: linear-gradient(90deg, var(--text-color), var(--secondary-color));
+      background: linear-gradient(90deg, #00d4ff, #ff4de8);
       color: white;
       border: none;
       padding: 12px;
@@ -71,23 +45,6 @@
       border-radius: 10px;
       cursor: pointer;
       margin-bottom: 15px;
-      transition: 0.3s;
-    }
-    button:hover {
-      opacity: 0.9;
-    }
-    .toggle-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .theme-toggle {
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
     }
     table {
       width: 100%;
@@ -97,38 +54,16 @@
     }
     th, td {
       padding: 10px;
-      border-bottom: 1px solid var(--secondary-color);
+      border-bottom: 1px solid #ff4de8;
       text-align: center;
-    }
-    tbody tr:hover {
-      background-color: var(--table-hover);
-    }
-    .contact {
-      display: block;
-      font-size: 13px;
-      color: var(--secondary-color);
-      text-decoration: none;
-      margin-top: 12px;
-    }
-    .contact:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Database ID Channel</h1>
-    <div class="toggle-container">
-      <select id="themeSelector" onchange="changeTheme()">
-        <option value="blue-pink">Biru / Pink</option>
-        <option value="blue-purple">Biru / Ungu</option>
-        <option value="green-orange">Hijau / Oranye</option>
-      </select>
-      <button class="theme-toggle" onclick="toggleDarkMode()" title="Ganti Mode">🌙</button>
-    </div>
     <input type="text" id="idInput" placeholder="Masukkan ID Channel" />
     <button onclick="addId()">Tambah ID Channel</button>
-    <input type="text" id="searchInput" placeholder="Cari ID Channel..." oninput="searchId()" />
     <table>
       <thead>
         <tr>
@@ -138,106 +73,68 @@
       </thead>
       <tbody id="idList"></tbody>
     </table>
-    <a href="https://wa.me/6281401942027" class="contact">Contact Developer.</a>
   </div>
+
   <script>
-    const themes = {
-      'blue-pink': { text: '#00d4ff', secondary: '#ff4de8' },
-      'blue-purple': { text: '#00cfff', secondary: '#9b59b6' },
-      'green-orange': { text: '#00ffaa', secondary: '#ff7e29' }
-    };function changeTheme() {
-  const selected = document.getElementById('themeSelector').value;
-  document.documentElement.style.setProperty('--text-color', themes[selected].text);
-  document.documentElement.style.setProperty('--secondary-color', themes[selected].secondary);
-}
+    let idList = [];
 
-function toggleDarkMode() {
-  const currentTheme = document.body.getAttribute('data-theme');
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  document.body.setAttribute('data-theme', newTheme);
-}
-
-let idList = [];
-
-async function fetchDatabase() {
-  try {
-    const res = await fetch('https://raw.githubusercontent.com/rayyzneverlus/PUSH-CH-FAREL/main/data.json');
-    const data = await res.json();
-    idList = data.channels || [];
-    renderList(idList);
-  } catch (error) {
-    alert('Gagal fetch database: ' + error);
-  }
-}
-
-async function addId() {
-  const input = document.getElementById("idInput");
-  const newId = input.value.trim();
-
-  if (newId === "") {
-    alert("ID Channel tidak boleh kosong!");
-    return;
-  }
-
-  const isValidId = /^\d{18}@newsletter$/i.test(newId);
-  if (!isValidId) {
-    alert("ID harus berformat: 18 angka diikuti @newsletter\nContoh: 120363419067731905@newsletter");
-    return;
-  }
-
-  if (idList.includes(newId)) {
-    alert("ID Channel sudah terdaftar!");
-    return;
-  }
-
-  idList.push(newId);
-  await updateDatabase();
-  input.value = "";
-  renderList(idList);
-}
-
-async function updateDatabase() {
-  try {
-    const response = await fetch("https://push-ch-farel.vercel.app/api/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ channels: idList })
-    });
-
-    const result = await response.json();
-    if (result.success) {
-      alert("Berhasil update database!");
-    } else {
-      alert("Gagal update database: " + result.error);
+    async function fetchDatabase() {
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/rayyzneverlus/PUSH-CH-FAREL/main/data.json');
+        const data = await res.json();
+        idList = data.channels || [];
+        renderList(idList);
+      } catch (error) {
+        alert('Gagal mengambil data: ' + error.message);
+      }
     }
-  } catch (err) {
-    alert("Error: " + err);
-  }
-}
 
-function renderList(list) {
-  const listElement = document.getElementById('idList');
-  listElement.innerHTML = '';
-  list.forEach(id => {
-    const row = document.createElement('tr');
-    const idCell = document.createElement('td');
-    const statusCell = document.createElement('td');
-    idCell.textContent = id;
-    statusCell.textContent = 'active';
-    row.appendChild(idCell);
-    row.appendChild(statusCell);
-    listElement.appendChild(row);
-  });
-}
+    function renderList(list) {
+      const tbody = document.getElementById('idList');
+      tbody.innerHTML = "";
+      list.forEach(id => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${id}</td><td>active</td>`;
+        tbody.appendChild(row);
+      });
+    }
 
-function searchId() {
-  const query = document.getElementById('searchInput').value.trim().toLowerCase();
-  const filtered = idList.filter(id => id.toLowerCase().includes(query));
-  renderList(filtered);
-}
+    async function addId() {
+      const input = document.getElementById("idInput");
+      const newId = input.value.trim();
 
-fetchDatabase();
+      if (!/^\d{18}@newsletter$/.test(newId)) {
+        alert("Format salah! Contoh: 120363419067731905@newsletter");
+        return;
+      }
 
+      if (idList.includes(newId)) {
+        alert("ID sudah ada!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: newId })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          idList.push(newId);
+          renderList(idList);
+          input.value = "";
+          alert("ID berhasil ditambahkan!");
+        } else {
+          alert("Gagal menambah ID: " + (result.error || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Error saat menambahkan ID: " + err.message);
+      }
+    }
+
+    fetchDatabase();
   </script>
 </body>
-  </html>
+</html>
